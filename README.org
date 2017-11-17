@@ -1,0 +1,75 @@
+* mapgen
+  
+Generate map from  struct
+
+** Example
+source codes:
+#+BEGIN_SRC go
+type Backend struct {
+	Zone      string
+	Cluster   string
+	Rack      string
+	Node      string
+	Partition int
+}
+#+END_SRC
+
+generated codes:
+#+BEGIN_SRC go
+type BackendMapperImpl struct {
+	vals map[string]map[string]map[string]map[string]int
+}
+
+func (impl *BackendMapperImpl) insert(d Backend) {
+	Clusters, ok := impl.vals[d.Zone]
+	if !ok {
+		Clusters = make(map[string]map[string]map[string]int)
+		impl.vals[d.Zone] = Clusters
+	}
+
+	Racks, ok := Clusters[d.Cluster]
+	if !ok {
+		Racks = make(map[string]map[string]int)
+		Clusters[d.Cluster] = Racks
+	}
+
+	Nodes, ok := Racks[d.Rack]
+	if !ok {
+		Nodes = make(map[string]int)
+		Racks[d.Rack] = Nodes
+	}
+	Nodes[d.Node] = d.Partition
+}
+func (impl *BackendMapperImpl) del(d Backend) {
+	Clusters, ok := impl.vals[d.Zone]
+	if !ok {
+		return
+	}
+	defer func() {
+		if len(Clusters) == 0 {
+			delete(impl.vals, d.Zone)
+		}
+	}()
+
+	Racks, ok := Clusters[d.Cluster]
+	if !ok {
+		return
+	}
+	defer func() {
+		if len(Racks) == 0 {
+			delete(Clusters, d.Cluster)
+		}
+	}()
+
+	Nodes, ok := Racks[d.Rack]
+	if !ok {
+		return
+	}
+	defer func() {
+		if len(Nodes) == 0 {
+			delete(Racks, d.Rack)
+		}
+	}()
+	delete(Nodes, d.Node)
+}
+#+END_SRC
