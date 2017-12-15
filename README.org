@@ -12,8 +12,13 @@ type Backend struct {
 	Node      string
 	Partition int
 }
-#+END_SRC
 
+
+
+#+END_SRC
+#+BEGIN_SRC shell
+mapgen -file example.go -type Backend
+#+END_SRC
 generated codes:
 #+BEGIN_SRC go
 type BackendMapperImpl struct {
